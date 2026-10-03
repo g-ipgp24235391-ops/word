@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>《蔡伦造纸》汉字笔画笔顺互动课堂</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Hanzi Writer 互动描红库 -->
+  <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5/dist/hanzi-writer.min.js"></script>
+  <style>
+    body {
+      background-color: #F8F5EC;
+      background-image: radial-gradient(#E2D9C5 1px, transparent 1px);
+      background-size: 20px 20px;
+      font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    }
+    
+    /* 米字格基础容器 */
+    .mi-zi-ge-box {
+      position: relative;
+      background-color: #FFFDF9;
+      border: 4px solid #8C6239;
+      box-shadow: 0 6px 16px rgba(140, 98, 57, 0.12);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .mi-zi-ge-lines {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      z-index: 0;
+      pointer-events: none;
+      background: 
+        linear-gradient(to right, transparent 49.5%, #EADBCE 49.5%, #EADBCE 50.5%, transparent 50.5%),
+        linear-gradient(to bottom, transparent 49.5%, #EADBCE 49.5%, #EADBCE 50.5%, transparent 50.5%),
+        linear-gradient(45deg, transparent 49.5%, #F0E6D8 49.5%, #F0E6D8 50.5%, transparent 50.5%),
+        linear-gradient(-45deg, transparent 49.5%, #F0E6D8 49.5%, #F0E6D8 50.5%, transparent 50.5%);
+    }
+
+    #character-target {
+      position: relative;
+      z-index: 1;
+    }
+  </style>
+</head>
+<body class="min-h-screen text-amber-950 flex flex-col items-center justify-between p-4 md:p-6">
+
+  <!-- 顶部标题栏 -->
+  <header class="w-full max-w-5xl text-center mb-4">
+    <div class="inline-flex items-center gap-2 bg-amber-100/80 px-4 py-1.5 rounded-full border border-amber-300 text-amber-800 text-sm font-semibold mb-2">
+      📜 统编版三年级下册 · 《蔡伦造纸》生字教学
+    </div>
+    <h1 class="text-3xl md:text-4xl font-extrabold text-amber-900 tracking-wide">
+      汉字笔画笔顺互动课堂
+    </h1>
+  </header>
+
+  <!-- 主体区域 -->
+  <main class="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+    
+    <!-- 左侧：生字选择卡片 & 笔画详情 -->
+    <section class="lg:col-span-4 bg-white/90 backdrop-blur-sm p-4 rounded-2xl border-2 border-amber-200 shadow-sm">
+      <div class="flex gap-2 mb-3 border-b pb-2 border-amber-100">
+        <button id="tab-core" onclick="switchCategory('core')" class="flex-1 py-1.5 px-2 rounded-lg text-xs font-bold bg-amber-600 text-white shadow-sm transition">
+          ⭐ 课堂精讲字
+        </button>
+        <button id="tab-extra" onclick="switchCategory('extra')" class="flex-1 py-1.5 px-2 rounded-lg text-xs font-bold bg-amber-50 text-amber-800 hover:bg-amber-100 transition">
+          📚 课后生词表
+        </button>
+      </div>
+
+      <!-- 生字网格 -->
+      <div id="words-grid" class="grid grid-cols-5 gap-2"></div>
+
+      <!-- 汉字属性卡片 -->
+      <div class="mt-4 p-3.5 bg-amber-50/80 rounded-xl border border-amber-200">
+        <div class="flex items-center justify-between border-b border-amber-200/60 pb-2 mb-2">
+          <span class="text-xs font-bold text-amber-800">📖 汉字属性卡</span>
+          <button onclick="speakCurrentChar()" class="bg-amber-200/60 hover:bg-amber-200 text-amber-900 px-2 py-0.5 rounded text-xs">🔊 点击发音</button>
+        </div>
+        
+        <div class="grid grid-cols-2 gap-y-1.5 text-xs text-amber-900">
+          <div>读音：<strong id="char-pinyin" class="text-amber-700">juàn</strong></div>
+          <div>部首：<strong id="char-radical" class="text-amber-700">卩</strong></div>
+          <div>总笔画：<strong id="char-strokes-count" class="text-amber-700">8 画</strong></div>
+          <div>结构：<strong id="char-structure" class="text-amber-700">上下结构</strong></div>
+        </div>
+
+        <div class="mt-3 pt-2 border-t border-amber-200/60">
+          <div class="text-xs font-bold text-amber-800 mb-1">✍️ 笔画顺序分解：</div>
+          <p id="char-strokes-order" class="text-xs text-amber-900 leading-relaxed font-mono bg-white p-2 rounded border border-amber-100 h-28 overflow-y-auto">
+            1. 撇  2. 捺  3. 横  4. 横  5. 撇  6. 捺  7. 横折钩  8. 竖
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 右侧：视频/GIF 笔顺示范区 & 互动描红区 -->
+    <section class="lg:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+      
+      <!-- 1. 动态笔顺示范区 -->
+      <div class="bg-white/90 p-4 rounded-2xl border-2 border-amber-200 shadow-sm flex flex-col items-center justify-between">
+        <div class="w-full flex items-center justify-between mb-2">
+          <h2 class="text-sm font-bold text-amber-900 flex items-center gap-1">
+            🎬 笔顺动态示范
+          </h2>
+          <span class="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">标准笔顺</span>
+        </div>
+
+        <!-- 视频/GIF 显示框（带米字格底衬） -->
+        <div class="mi-zi-ge-box w-[220px] h-[220px] flex items-center justify-center my-1 relative">
+          <div class="mi-zi-ge-lines"></div>
+          <div id="media-container" class="w-full h-full flex items-center justify-center relative z-10">
+            <video id="stroke-media" src="卷.mp4" autoplay loop muted playsinline class="w-full h-full object-contain relative z-10 p-1"></video>
+          </div>
+        </div>
+
+        <div class="w-full mt-2 flex gap-2">
+          <button onclick="reloadGif()" class="w-full py-2 px-3 bg-amber-600 hover:bg-amber-700 active:scale-95 text-white font-bold rounded-xl text-xs shadow transition">
+            🔄 重新播放动画
+          </button>
+        </div>
+      </div>
+
+      <!-- 2. 交互描红区 -->
+      <div class="bg-white/90 p-4 rounded-2xl border-2 border-amber-200 shadow-sm flex flex-col items-center justify-between">
+        <div class="w-full flex items-center justify-between mb-2">
+          <h2 class="text-sm font-bold text-amber-900 flex items-center gap-1">
+            ✍️ 课堂互动描红
+          </h2>
+          <span id="quiz-status" class="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded">准备就绪</span>
+        </div>
+
+        <!-- 描红画布 -->
+        <div class="mi-zi-ge-box w-[220px] h-[220px] flex items-center justify-center my-1">
+          <div class="mi-zi-ge-lines"></div>
+          <div id="character-target" class="w-full h-full flex items-center justify-center"></div>
+        </div>
+
+        <!-- 控制按钮 -->
+        <div class="w-full mt-2 flex gap-2">
+          <button onclick="startQuiz()" class="flex-1 py-2 px-3 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold rounded-xl text-xs shadow transition">
+            开始描红
+          </button>
+          <button onclick="resetQuiz()" class="py-2 px-3 bg-amber-100 hover:bg-amber-200 active:scale-95 text-amber-800 font-bold rounded-xl text-xs border border-amber-300 transition">
+            重置
+          </button>
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+  <footer class="mt-4 text-center text-xs text-amber-700/60">
+    《蔡伦造纸》生字教学互动课件
+  </footer>
+
+  <script>
+    // 完整的生字信息（对应视频/图片）
+    const charDetails = {
+      // 核心精讲字
+      '卷': { pinyin: 'juàn', radical: '卩', count: 8, structure: '上下结构', media: '卷.mp4', order: '1. 撇  2. 捺  3. 横  4. 横  5. 撇  6. 捺  7. 横折钩  8. 竖' },
+      '尊': { pinyin: 'zūn', radical: '寸', count: 12, structure: '上下结构', media: '尊.mp4', order: '1. 点  2. 撇  3. 横  4. 竖  5. 横折  6. 撇  7. 竖折  8. 横  9. 横  10. 横  11. 竖钩  12. 点' },
+      '封': { pinyin: 'fēng', radical: '寸', count: 9, structure: '左右结构', media: '封.mp4', order: '1. 横  2. 竖  3. 横  4. 竖  5. 提  6. 点  7. 横  8. 竖钩  9. 点' },
+      '骨': { pinyin: 'gǔ', radical: '骨', count: 9, structure: '上下结构', media: '骨.mp4', order: '1. 竖  2. 横折  3. 横折  4. 点  5. 秃宝盖  6. 竖  7. 横折钩  8. 横  9. 横' },
+      '甲': { pinyin: 'jiǎ', radical: '丨', count: 5, structure: '独体字', media: '甲 (1).mp4', order: '1. 竖  2. 横折  3. 横  4. 竖  5. 竖' },
+
+      // 课后生词表
+      '弱': { pinyin: 'ruò', radical: '弓', count: 10, structure: '左右结构', order: '1. 弯钩  2. 横折  3. 提  4. 撇  5. 点  6. 弯钩  7. 横折  8. 提  9. 撇  10. 点' },
+      '怀': { pinyin: 'huái', radical: '忄', count: 7, structure: '左右结构', order: '1. 点  2. 点  3. 竖  4. 横  5. 撇  6. 竖撇  7. 点' },
+      '决': { pinyin: 'jué', radical: '冫', count: 6, structure: '左右结构', order: '1. 点  2. 提  3. 横折  4. 横  5. 撇  6. 捺' },
+      '术': { pinyin: 'shù', radical: '木', count: 5, structure: '独体字', order: '1. 横  2. 竖钩  3. 撇  4. 点  5. 点' },
+      '省': { pinyin: 'shěng', radical: '目', count: 9, structure: '上下结构', order: '1. 竖  2. 点  3. 撇  4. 横  5. 竖  6. 横折  7. 横  8. 横  9. 横' },
+      '闭': { pinyin: 'bì', radical: '门', count: 6, structure: '半包围结构', order: '1. 点  2. 竖  3. 横折钩  4. 横  5. 撇  6. 竖弯钩' },
+      '麻': { pinyin: 'má', radical: '麻', count: 11, structure: '半包围结构', order: '1. 点  2. 横  3. 撇  4. 横  5. 竖  6. 撇  7. 点  8. 横  9. 竖  10. 撇  11. 点' },
+      '浸': { pinyin: 'jìn', radical: '氵', count: 10, structure: '左右结构', order: '1. 点  2. 点  3. 提  4. 横折  5. 横  6. 竖  7. 横  8. 撇  9. 捺  10. 竖弯钩' },
+      '锅': { pinyin: 'guō', radical: '钅', count: 12, structure: '左右结构', order: '1. 撇  2. 横  3. 横  4. 竖提  5. 点  6. 竖  7. 横折  8. 横  9. 竖  10. 横折钩  11. 撇  12. 点' },
+      '浆': { pinyin: 'jiāng', radical: '水', count: 10, structure: '上下结构', order: '1. 点  2. 提  3. 撇  4. 竖折  5. 竖  6. 横折  7. 竖  8. 横折钩  9. 撇  10. 捺' },
+      '席': { pinyin: 'xí', radical: '巾', count: 10, structure: '半包围结构', order: '1. 点  2. 横  3. 撇  4. 竖  5. 竖  6. 横  7. 竖  8. 横折钩  9. 竖' },
+      '晾': { pinyin: 'liàng', radical: '日', count: 12, structure: '左右结构', order: '1. 竖  2. 横折  3. 横  4. 横  5. 点  6. 横  7. 竖  8. 横折  9. 横  10. 竖钩  11. 撇  12. 点' },
+      '晒': { pinyin: 'shài', radical: '日', count: 10, structure: '左右结构', order: '1. 竖  2. 横折  3. 横  4. 横  5. 横  6. 竖  7. 横折  8. 撇  9. 竖弯钩  10. 横' },
+      '敬': { pinyin: 'jìng', radical: '攵', count: 12, structure: '左右结构', order: '1. 横  2. 竖  3. 竖  4. 撇  5. 横折钩  6. 口: 竖、横折、横  7. 攵: 撇、横、撇、捺' }
+    };
+
+    const wordData = {
+      core: ['卷', '尊', '封', '骨', '甲'],
+      extra: ['弱', '怀', '决', '术', '省', '闭', '麻', '浸', '锅', '浆', '席', '晾', '晒', '敬']
+    };
+
+    const numToChinese = ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十', '十一', '十二', '十三', '十四', '十五'];
+
+    let currentChar = '卷';
+    let currentCategory = 'core';
+    let writer = null;
+
+    window.onload = () => {
+      renderWordGrid();
+      loadCharData(currentChar);
+    };
+
+    function switchCategory(cat) {
+      currentCategory = cat;
+      document.getElementById('tab-core').className = cat === 'core' 
+        ? "flex-1 py-1.5 px-2 rounded-lg text-xs font-bold bg-amber-600 text-white shadow-sm transition"
+        : "flex-1 py-1.5 px-2 rounded-lg text-xs font-bold bg-amber-50 text-amber-800 hover:bg-amber-100 transition";
+      
+      document.getElementById('tab-extra').className = cat === 'extra' 
+        ? "flex-1 py-1.5 px-2 rounded-lg text-xs font-bold bg-amber-600 text-white shadow-sm transition"
+        : "flex-1 py-1.5 px-2 rounded-lg text-xs font-bold bg-amber-50 text-amber-800 hover:bg-amber-100 transition";
+
+      renderWordGrid();
+      selectChar(wordData[cat][0]);
+    }
+
+    function renderWordGrid() {
+      const container = document.getElementById('words-grid');
+      container.innerHTML = '';
+      
+      wordData[currentCategory].forEach(char => {
+        const btn = document.createElement('button');
+        const isSelected = char === currentChar;
+        btn.className = `h-10 text-base font-bold rounded-lg border transition-all flex items-center justify-center ${
+          isSelected 
+            ? 'bg-amber-600 text-white border-amber-700 shadow-md scale-105' 
+            : 'bg-amber-50/50 text-amber-900 border-amber-200 hover:bg-amber-100'
+        }`;
+        btn.innerText = char;
+        btn.onclick = () => selectChar(char);
+        container.appendChild(btn);
+      });
+    }
+
+    function selectChar(char) {
+      currentChar = char;
+      renderWordGrid();
+      loadCharData(char);
+      speakCurrentChar();
+    }
+
+    function loadCharData(char) {
+      const data = charDetails[char] || {
+        pinyin: '-', radical: '-', count: '-', structure: '-', media: '', order: '暂无笔画说明'
+      };
+
+      document.getElementById('char-pinyin').innerText = data.pinyin;
+      document.getElementById('char-radical').innerText = data.radical;
+      document.getElementById('char-strokes-count').innerText = data.count + (typeof data.count === 'number' ? ' 画' : '');
+      document.getElementById('char-structure').innerText = data.structure;
+      document.getElementById('char-strokes-order').innerText = data.order;
+
+      // 动态加载视频或图片
+      const mediaContainer = document.getElementById('media-container');
+      const mediaPath = data.media || data.gif || '';
+      
+      if (mediaPath) {
+        const isVideo = mediaPath.endsWith('.mp4') || mediaPath.endsWith('.webm');
+        if (isVideo) {
+          mediaContainer.innerHTML = `<video id="stroke-media" src="${mediaPath}" autoplay loop muted playsinline class="w-full h-full object-contain relative z-10 p-1"></video>`;
+        } else {
+          mediaContainer.innerHTML = `<img id="stroke-media" src="${mediaPath}?t=${new Date().getTime()}" alt="笔顺示范" class="w-full h-full object-contain relative z-10 p-1" onerror="handleImageError(this)">`;
+        }
+      } else {
+        mediaContainer.innerHTML = `<div class="text-xs text-amber-700/60 z-10">暂无视频示范</div>`;
+      }
+
+      initHanziWriter(char);
+    }
+
+    function reloadGif() {
+      const data = charDetails[currentChar];
+      const mediaPath = data ? (data.media || data.gif) : null;
+      if (mediaPath) {
+        const mediaEl = document.getElementById('stroke-media');
+        if (mediaEl) {
+          if (mediaEl.tagName.toLowerCase() === 'video') {
+            mediaEl.currentTime = 0;
+            mediaEl.play();
+          } else {
+            mediaEl.src = mediaPath + '?t=' + new Date().getTime();
+          }
+        }
+      }
+    }
+
+    function handleImageError(img) {
+      img.alt = '未找到对应的动画文件，请确保文件名格式正确';
+    }
+
+    function initHanziWriter(char) {
+      document.getElementById('character-target').innerHTML = '';
+      document.getElementById('quiz-status').innerText = '准备就绪';
+      document.getElementById('quiz-status').className = 'text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded';
+
+      writer = HanziWriter.create('character-target', char, {
+        width: 210,
+        height: 210,
+        padding: 10,
+        showOutline: true,
+        strokeColor: '#2C1810',
+        outlineColor: '#E6D5C3',
+        drawingColor: '#C83C23',
+        showHintAfterMisses: 1
+      });
+    }
+
+    function startQuiz() {
+      if (!writer) return;
+      
+      document.getElementById('quiz-status').innerText = '描红中...';
+      document.getElementById('quiz-status').className = 'text-[10px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded';
+
+      writer.cancelQuiz();
+      writer.quiz({
+        onCorrectStroke: function(strokeData) {
+          const idx = strokeData.strokeNum;
+          const zhNum = numToChinese[idx] || (idx + 1);
+          speakText(`第${zhNum}笔正确`);
+        },
+        onComplete: function() {
+          document.getElementById('quiz-status').innerText = '完成！';
+          document.getElementById('quiz-status').className = 'text-[10px] bg-green-100 text-green-800 px-1.5 py-0.5 rounded';
+          speakText(`太棒了！正确写出了 ${currentChar} 字`);
+        }
+      });
+    }
+
+    function resetQuiz() {
+      if (writer) {
+        writer.cancelQuiz();
+        initHanziWriter(currentChar);
+      }
+    }
+
+    function speakCurrentChar() {
+      speakText(currentChar);
+    }
+
+    function speakText(text) {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'zh-CN';
+        utterance.rate = 0.85;
+        window.speechSynthesis.speak(utterance);
+      }
+    }
+  </script>
+</body>
+</html>
